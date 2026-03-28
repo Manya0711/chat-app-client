@@ -7,11 +7,24 @@ require('dotenv').config();
 
 const app = express();
 const server = http.createServer(app);
+
+// 1. UPDATE THIS: Link it to your Vercel URL
+const allowedOrigin = 'https://chat-app-client-tau-two.vercel.app';
+
 const io = new Server(server, {
-  cors: { origin: 'http://localhost:3000', methods: ['GET', 'POST'] }
+  cors: { 
+    origin: allowedOrigin, 
+    methods: ['GET', 'POST'],
+    credentials: true 
+  }
 });
 
-app.use(cors());
+// 2. UPDATE THIS: Make sure the main app uses the same origin
+app.use(cors({
+  origin: allowedOrigin,
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Routes
@@ -25,7 +38,7 @@ app.get('/', (req, res) => res.send('Chat server running!'));
 // Socket.io
 require('./socket')(io);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000; // Render uses port 10000 by default
 
 initDB().then(() => {
   server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT} ✅ DB ready`));
