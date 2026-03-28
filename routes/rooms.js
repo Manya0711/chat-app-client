@@ -17,20 +17,22 @@ router.get('/', auth, async (req, res) => {
 // Create a room
 router.post('/', auth, async (req, res) => {
   try {
-    await db.read();
     const { name, members, isGroup } = req.body;
-    const room = {
+    await db.read();
+    
+    const newRoom = {
       id: uuidv4(),
       name,
-      members: [...members, req.user.id],
+      members: members || [],
       isGroup: isGroup || false,
       createdAt: new Date()
     };
-    db.data.rooms.push(room);
+
+    db.data.rooms.push(newRoom);
     await db.write();
-    res.status(201).json(room);
+    res.status(201).json(newRoom);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
