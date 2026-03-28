@@ -29,7 +29,7 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   try {
-    await db.read();
+     db.read();
     const { email, password } = req.body;
 
     const user = db.data.users.find(u => u.email === email);
