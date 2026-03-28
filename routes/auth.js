@@ -7,7 +7,7 @@ const { db } = require('../db');
 // Register
 router.post('/register', async (req, res) => {
   try {
-    await db.read();
+    db.read();
     const { username, email, password } = req.body;
 
     const exists = db.data.users.find(u => u.email === email);
@@ -16,7 +16,7 @@ router.post('/register', async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = { id: uuidv4(), username, email, password: hashed, isOnline: false, lastSeen: new Date() };
     db.data.users.push(user);
-    await db.write();
+    db.write();
 
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.status(201).json({ token, user: { id: user.id, username, email } });
