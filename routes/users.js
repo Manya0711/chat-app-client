@@ -4,11 +4,12 @@ const auth = require('../middleware/auth');
 
 router.get('/', auth, async (req, res) => {
   try {
-    // Fetch all users from MongoDB except you
-    const users = await User.find({ _id: { $ne: req.user.id } }).select('-password');
+    // Finds everyone except the logged-in user
+    const users = await User.find({ _id: { $ne: req.user.id } }).select('username _id');
     res.json(users);
   } catch (err) {
-    res.status(500).json({ message: "Error fetching users" });
+    console.error("Fetch Users Error:", err);
+    res.status(500).json({ message: "Server error fetching users" });
   }
 });
 

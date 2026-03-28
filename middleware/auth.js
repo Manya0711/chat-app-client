@@ -1,14 +1,14 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = (req, res, next) => {
-  const token = req.header('Authorization')?.replace('Bearer ', '');
-  if (!token) return res.status(401).json({ message: 'No token, access denied' });
+  const token = req.header('Authorization')?.split(' ')[1];
+  if (!token) return res.status(401).json({ message: 'No token' });
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
+    const decoded = jwt.verify(token, 'secret');
+    req.user = { id: decoded.id }; // This matches the MongoDB _id
     next();
-  } catch {
-    res.status(401).json({ message: 'Invalid token' });
+  } catch (err) {
+    res.status(401).json({ message: 'Token invalid' });
   }
 };
