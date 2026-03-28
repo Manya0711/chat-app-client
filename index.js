@@ -8,7 +8,7 @@ require('dotenv').config();
 const app = express();
 const server = http.createServer(app);
 
-// 1. UPDATE THIS: Link it to your Vercel URL
+// 1. Vercel URL Configuration
 const allowedOrigin = 'https://chat-app-client-tau-two.vercel.app';
 
 const io = new Server(server, {
@@ -19,7 +19,7 @@ const io = new Server(server, {
   }
 });
 
-// 2. UPDATE THIS: Make sure the main app uses the same origin
+// 2. Middleware
 app.use(cors({
   origin: allowedOrigin,
   credentials: true
@@ -27,24 +27,26 @@ app.use(cors({
 
 app.use(express.json());
 
-// Routes
-app.use(express.json());
-
-// Routes
+// 3. Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/rooms', require('./routes/rooms'));
-app.use('/api/users', require('./routes/users')); // Connected! ✅
-
+app.use('/api/users', require('./routes/users'));
 
 // Test route
-app.get('/', (req, res) => res.send('Chat server running!'));
+app.get('/', (req, res) => res.send('Chat server running! ✅'));
 
-// Socket.io
+// 4. Socket.io
 require('./socket')(io);
 
-const PORT = process.env.PORT || 10000; // Render uses port 10000 by default
+// 5. Database Connection & Server Start
+const PORT = process.env.PORT || 10000;
 
 initDB().then(() => {
-  server.listen(PORT, () => console.log(`🚀 Server running on port ${PORT} ✅ DB ready`));
+  server.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`✅ MongoDB Connection Established`);
+  });
+}).catch(err => {
+  console.error("❌ Failed to start server:", err);
 });

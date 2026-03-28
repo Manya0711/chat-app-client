@@ -1,28 +1,14 @@
 const router = require('express').Router();
-const { db } = require('../db');
+const User = require('../models/User');
 const auth = require('../middleware/auth');
 
-router.get('/', auth, (req, res) => {
+router.get('/', auth, async (req, res) => {
   try {
-    db.read();
-    
-    // DEBUG: Let's see if there are any users in the database at all
-    if (!db.data.users || db.data.users.length === 0) {
-      console.log("DB is empty!");
-      return res.json([]);
-    }
-
-    // Return EVERYONE for now so we can see if it's working
-    const allUsers = db.data.users.map(u => ({
-      id: u.id,
-      username: u.username
-    }));
-
-    console.log("Sending users to frontend:", allUsers);
-    res.json(allUsers);
+    // Fetch all users from MongoDB except you
+    const users = await User.find({ _id: { $ne: req.user.id } }).select('-password');
+    res.json(users);
   } catch (err) {
-    console.error("Users Route Error:", err);
-    res.status(500).json({ message: "Server Error" });
+    res.status(500).json({ message: "Error fetching users" });
   }
 });
 
