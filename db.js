@@ -3,14 +3,17 @@ require('dotenv').config();
 
 const initDB = async () => {
   try {
-    // We add some extra options here to handle connection drops better
-    await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000 // 5 seconds instead of 30
+    // 1. Set global options to prevent the "Buffering" crash
+    mongoose.set('bufferCommands', false);
+
+    const conn = await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 5000,
     });
-    console.log("✅ MongoDB Connected Successfully!");
+
+    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
-    process.exit(1);
+    // Don't kill the process immediately, let's see the error in Render logs
   }
 };
 
