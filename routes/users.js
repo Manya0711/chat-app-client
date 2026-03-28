@@ -2,27 +2,28 @@ const router = require('express').Router();
 const { db } = require('../db');
 const auth = require('../middleware/auth');
 
-// GET /api/users - Get all registered users except the logged-in one
 router.get('/', auth, (req, res) => {
   try {
-    // 1. Read the latest data from the database
     db.read();
+    
+    // DEBUG: Let's see if there are any users in the database at all
+    if (!db.data.users || db.data.users.length === 0) {
+      console.log("DB is empty!");
+      return res.json([]);
+    }
 
-    // 2. Filter out YOUR own name (you don't need to chat with yourself!)
-    // 3. Only send back the ID and Username (don't send passwords!)
-    const others = db.data.users
-      .filter(u => u.id !== req.user.id)
-      .map(u => ({
-        id: u.id,
-        username: u.username
-      }));
+    // Return EVERYONE for now so we can see if it's working
+    const allUsers = db.data.users.map(u => ({
+      id: u.id,
+      username: u.username
+    }));
 
-    res.json(others);
+    console.log("Sending users to frontend:", allUsers);
+    res.json(allUsers);
   } catch (err) {
-    console.error("User Fetch Error:", err);
-    res.status(500).json({ message: "Error loading contacts" });
+    console.error("Users Route Error:", err);
+    res.status(500).json({ message: "Server Error" });
   }
 });
 
-// VERY IMPORTANT: Export the router so index.js can use it
 module.exports = router;
