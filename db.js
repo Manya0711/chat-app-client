@@ -2,18 +2,20 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 
 const initDB = async () => {
+  // 1. This is the magic line. It tells Mongoose: 
+  // "If the DB isn't ready, throw an error immediately instead of staying (pending)"
+  mongoose.set('bufferCommands', false); 
+
   try {
-    // 1. Set global options to prevent the "Buffering" crash
-    mongoose.set('bufferCommands', false);
-
-    const conn = await mongoose.connect(process.env.MONGO_URI, {
-      serverSelectionTimeoutMS: 5000,
+    console.log("⏳ Connecting to MongoDB...");
+    await mongoose.connect(process.env.MONGO_URI, {
+      serverSelectionTimeoutMS: 10000, // Wait 10 seconds before giving up
     });
-
-    console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
+    console.log("✅ MongoDB Connected Successfully!");
   } catch (err) {
     console.error("❌ MongoDB Connection Error:", err.message);
-    // Don't kill the process immediately, let's see the error in Render logs
+    // If the DB fails, we want the server to restart so it tries again
+    process.exit(1); 
   }
 };
 
