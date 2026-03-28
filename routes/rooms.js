@@ -1,52 +1,45 @@
 const router = require('express').Router();
-const { v4: uuidv4 } = require('uuid');
 const { db } = require('../db');
 const auth = require('../middleware/auth');
+const { v4: uuidv4 } = require('uuid');
 
-// Get all rooms for a user
-router.get('/', auth, (req, res) => { // Removed 'async'
-  try {
-    db.read(); // Removed 'await'
-    const rooms = db.data.rooms.filter(r => r.members.includes(req.user.id));
-    res.json(rooms);
-  } catch (err) {
-    res.status(500).json({ message: 'Server error' });
-  }
+// Get all rooms for the logged-in user
+router.get('/', auth, (req, res) => {
+  db.read();
+  const userRooms = db.data.rooms.filter(r => r.members.includes(req.user.id));
+  res.json(userRooms);
 });
 
-// Find or Create a Private Chat
+// Start or Get a Private Chat
 router.post('/', auth, (req, res) => {
-  try {
-    const { recipientId } = req.body;
-    const myId = req.user.id;
+  const { recipientId } = req.body;
+  db.read();
 
-    db.read();
+  // Find if a private chat already exists between these two
+  let room = db.data.rooms.find(r => 
+    !r.isGroup && 
+    r.members.includes(req.user.id) && 
+    r.members.includes(recipientId)
+  );
 
-    let room = db.data.rooms.find(r => 
-      !r.isGroup && 
-      r.members.includes(myId) && 
-      r.members.includes(recipientId)
-    );
+  if (!room) {
+    // Find the usernames to store them in the room object
+    const user1 = db.data.users.find(u => u.id === req.user.id);
+    const user2 = db.data.users.find(u => u.id === recipientId);
 
-    if (!room) {
-      room = {
-        id: uuidv4(),
-        name: "Private Chat",
-        members: [myId, recipientId],
-        isGroup: false,
-        createdAt: new Date()
-      };
-      
-      db.data.rooms.push(room);
-      db.write();
-    }
-
-    res.status(200).json(room);
-  } catch (err) {
-    console.error("Room Creation Error:", err);
-    res.status(500).json({ message: "Server Error" });
+    room = {
+      id: uuidv4(),
+      name: "Private Chat",
+      isGroup: false,
+      members: [req.user.id, recipientId],
+      usernames: [user1.username, user2.username], // Store names here!
+      createdAt: new Date().toISOString()
+    };
+    db.data.rooms.push(room);
+    db.write();
   }
+
+  res.json(room);
 });
 
-// THIS IS THE LINE YOU ARE MISSING:
 module.exports = router;
