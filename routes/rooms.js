@@ -4,39 +4,34 @@ const { db } = require('../db');
 const auth = require('../middleware/auth');
 
 // Get all rooms for a user
-// Get all rooms for a user (Synchronous version)
 router.get('/', auth, (req, res) => { // Removed 'async'
   try {
     db.read(); // Removed 'await'
     const rooms = db.data.rooms.filter(r => r.members.includes(req.user.id));
     res.json(rooms);
   } catch (err) {
-    console.error("Fetch Rooms Error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
-// Create a room
 // Find or Create a Private Chat
 router.post('/', auth, (req, res) => {
   try {
-    const { recipientId } = req.body; // The ID of the friend you want to text
-    const myId = req.user.id; // Your ID (from the auth middleware)
+    const { recipientId } = req.body;
+    const myId = req.user.id;
 
     db.read();
 
-    // 1. Check if a private room already exists between these TWO specific users
     let room = db.data.rooms.find(r => 
       !r.isGroup && 
       r.members.includes(myId) && 
       r.members.includes(recipientId)
     );
 
-    // 2. If no room exists, create a brand new one
     if (!room) {
       room = {
         id: uuidv4(),
-        name: "Private Chat", // You can update this later to show the friend's name
+        name: "Private Chat",
         members: [myId, recipientId],
         isGroup: false,
         createdAt: new Date()
@@ -46,11 +41,12 @@ router.post('/', auth, (req, res) => {
       db.write();
     }
 
-    // 3. Return the room (either the old one or the new one)
     res.status(200).json(room);
-
   } catch (err) {
     console.error("Room Creation Error:", err);
     res.status(500).json({ message: "Server Error" });
   }
 });
+
+// THIS IS THE LINE YOU ARE MISSING:
+module.exports = router;
