@@ -4,12 +4,14 @@ const { db } = require('../db');
 const auth = require('../middleware/auth');
 
 // Get all rooms for a user
-router.get('/', auth, async (req, res) => {
+// Get all rooms for a user (Synchronous version)
+router.get('/', auth, (req, res) => { // Removed 'async'
   try {
-    await db.read();
+    db.read(); // Removed 'await'
     const rooms = db.data.rooms.filter(r => r.members.includes(req.user.id));
     res.json(rooms);
   } catch (err) {
+    console.error("Fetch Rooms Error:", err);
     res.status(500).json({ message: 'Server error' });
   }
 });
