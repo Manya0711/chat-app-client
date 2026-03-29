@@ -1,3 +1,16 @@
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User'); // Make sure this path to your model is correct
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+
+// NOW your existing code can follow:
+router.post('/login', async (req, res) => {
+  // ... rest of your login code
+});
+
+// Make sure this is at the bottom:
+module.exports = router;
 router.post('/login', async (req, res) => {
   try {
     const { username, password } = req.body;
